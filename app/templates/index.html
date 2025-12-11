@@ -1,0 +1,250 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estacionamiento Urbano</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* ESTILOS GENERALES*/
+        body, html { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: #f4f4f4; }
+
+        /* PORTADA*/
+        .hero-section {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('{% static "images/fondo.jpg" %}');
+            min-height: 100vh; 
+            background-position: center; 
+            background-repeat: no-repeat; 
+            background-size: cover;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            position: relative; 
+        }
+        .container { width: 90%; max-width: 1200px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+        
+        .text-content { flex: 1; color: white; padding-right: 50px; min-width: 300px; }
+        .logo-icon { background-color: #bfd730; color: white; font-weight: bold; font-size: 24px; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 5px; margin-bottom: 20px; }
+        h1 { font-size: 4rem; line-height: 1.1; font-weight: 900; text-transform: uppercase; margin: 0; }
+
+        /* Caja de Panel de Control */
+        .form-box {
+            background-color: rgba(34, 33, 33, 0.90); 
+            padding: 40px; border-radius: 30px; width: 100%; max-width: 450px; 
+            color: rgb(209, 206, 206); backdrop-filter: blur(5px);
+        }
+        .input-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        
+        input, select {
+            width: 100%; background: transparent; border: none;
+            border-bottom: 1px solid rgb(240, 236, 236); padding: 10px 0;
+            color: rgb(255, 255, 255); outline: none; font-size: 0.9rem;
+        }
+        select option { color: black; } 
+        ::placeholder { color: #cccccc; }
+
+        /* BOTONES */
+        .btn-submit { 
+            background-color: #bfd730; color: #0a0a0a; border: none; padding: 15px; width: 100%; border-radius: 50px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 20px; transition: 0.3s; 
+        }
+        .btn-submit:hover { background-color: #a8be25; }
+
+        .btn-secondary {
+            display: block; background-color: transparent; color: #bfd730; border: 2px solid #bfd730; padding: 12px; width: 100%; border-radius: 50px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 15px; transition: 0.3s; text-decoration: none; text-align: center; box-sizing: border-box;
+        }
+        .btn-secondary:hover { background-color: #bfd730; color: #0a0a0a; }
+
+        /* Estilos para botones de reportes */
+        .btn-report {
+            flex: 1; padding: 10px; border-radius: 10px; text-decoration: none; color: white; font-weight: bold; text-align: center; transition: transform 0.2s;
+        }
+        .btn-report:hover { transform: scale(1.05); }
+        .bg-pdf { background-color: #d32f2f; }
+        .bg-excel { background-color: #1b5e20; }
+
+        /* Alertas */
+        .alert-box {
+            background-color: #fff; color: #333; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; text-align: center; border-left: 8px solid #bfd730; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Tarjetas de Ubicaciones */
+        .locations-section { padding: 80px 20px; text-align: center; }
+        .locations-title { font-size: 2.5rem; margin-bottom: 50px; color: #0e0d0d; font-weight: 900; }
+        .cards-container { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
+        .card { background: white; width: 350px; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 20px rgba(15, 15, 15, 0.2); transition: transform 0.3s ease; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-10px); }
+        .card-image { height: 200px; width: 100%; object-fit: cover; }
+        .card-content { padding: 25px; text-align: left; }
+        .card h3 { margin: 0 0 10px; font-size: 1.5rem; color: #333; }
+        
+        /* Semáforo */
+        .status { display: inline-block; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; }
+        .status.available { background-color: #e6f4ea; color: #1e8e3e; } 
+        .status.busy { background-color: #fce8e6; color: #d93025; }       
+        
+        .btn-location { display: block; text-align: center; background-color: #bfd730; color: #333; text-decoration: none; padding: 12px; border-radius: 10px; font-weight: bold; margin-top: 10px; transition: background 0.3s; }
+        .btn-location:hover { background-color: #a8be25; }
+        
+        @media (max-width: 768px) { .container { flex-direction: column; } .text-content { margin-bottom: 40px; text-align: center; padding-right: 0; } h1 { font-size: 2.5rem; } }
+    </style>
+</head>
+<body>
+
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 100; display: flex; gap: 10px; align-items: center;">
+        {% if user.is_authenticated %}
+            <a href="{% url 'perfil' %}" style="color: white; text-decoration: none; font-weight: bold; text-shadow: 1px 1px 2px black;">👤 {{ user.username }}</a>
+            <a href="{% url 'logout' %}" style="color: #bfd730; text-decoration: none; font-size: 0.9rem; border: 1px solid #bfd730; padding: 5px 10px; border-radius: 5px;">Cerrar sesión</a>
+        {% else %}
+            <a href="{% url 'login_cliente' %}" style="color: white; text-decoration: none; font-weight: bold; margin-right: 10px; text-shadow: 1px 1px 2px black;">Iniciar sesión</a>
+            <a href="{% url 'registro' %}" style="background-color: #bfd730; color: black; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">Crear cuenta</a>
+        {% endif %}
+    </div>
+
+    <div class="hero-section">
+        <div class="container">
+            <div class="text-content">
+                <div class="logo-icon">P</div>
+                <h1>Estacionamiento Premium<br>al alcance de tu mano</h1>
+                <p style="margin-top: 20px; opacity: 0.8;">Más seguro, más rápido.</p>
+            </div>
+
+            <div class="form-box">
+                
+                {% if user.is_authenticated and user.is_superuser %}
+                
+                    <h2>Panel de Control</h2>
+                    
+                    {% if mensaje %}
+                    <div class="alert-box">{{ mensaje }}</div>
+                    {% else %}
+                    <p>¡Servicios disponibles 24/7!</p>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %} 
+                        
+                        <div class="input-row">
+                            <input type="text" name="nombre" placeholder="Nombre (Opcional)">
+                            <input type="text" name="telefono" placeholder="Teléfono (Opcional)">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <select name="tipo_vehiculo" required>
+                                <option value="" disabled selected>Selecciona Tipo de Vehículo</option>
+                                <option value="Automovil">Automóvil</option>
+                                <option value="Motocicleta">Motocicleta</option>
+                                <option value="Camioneta">Camioneta</option>
+                            </select>
+                        </div>
+
+                        <input type="text" name="placas" placeholder="Placas (ej., ABC-123)" required style="font-size: 1.2rem; font-weight: bold; color: #bfd730;">
+                        
+                        <button type="submit" class="btn-submit">Registrar Entrada</button>
+                    </form>
+
+                    <a href="{% url 'cobrar' %}" class="btn-secondary">Ir a Salidas y Pago →</a>
+
+                    <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+                        <p style="margin: 0 0 10px; font-size: 0.9rem; color: #ccc;">Reportes Administrativos:</p>
+                        <div style="display: flex; gap: 10px;">
+                            <a href="{% url 'reporte_pdf' %}" class="btn-report bg-pdf">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                            <a href="{% url 'reporte_excel' %}" class="btn-report bg-excel">
+                                <i class="fas fa-file-excel"></i> Excel
+                            </a>
+                        </div>
+                    </div>
+
+                {% else %}
+                
+                    {% if not user.is_authenticated %}
+                        <h2>Bienvenido</h2>
+                        <p style="margin-bottom: 30px;">Inicia sesión para ver el estado de tu vehículo o regístrate para obtener beneficios.</p>
+                        
+                        <a href="{% url 'login_cliente' %}" class="btn-submit" style="text-decoration: none; display: block; text-align: center;">Iniciar sesión</a>
+                        <p style="margin-top: 15px; font-size: 0.9rem; text-align: center;">¿No tienes una cuenta? <a href="{% url 'registro' %}" style="color: #bfd730;">Regístrate aquí</a></p>
+                    
+                    {% else %}
+                        {% if datos_cliente %}
+                            <div style="background-color: white; color: #333; padding: 25px; border-radius: 20px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px dashed #ccc; padding-bottom: 10px; margin-bottom: 15px;">
+                                    <h3 style="margin: 0; color: #bfd730; text-transform: uppercase; font-size: 1.2rem;">
+                                        {% if datos_cliente.estado == 'inactivo' %}⛔ Inactivo{% else %}🎫 Ticket Activo{% endif %}
+                                    </h3>
+                                    <small style="color: #777;">{{ datos_cliente.nombre }}</small>
+                                </div>
+
+                                {% if datos_cliente.estado == 'inactivo' %}
+                                    <p style="color: #555;">Tu vehículo no está registrado actualmente en el estacionamiento.</p>
+                                    <div style="margin-top: 15px; padding: 10px; background-color: #f4f4f4; border-radius: 10px; font-size: 0.9rem; color: #777;">
+                                        <i class="fas fa-info-circle"></i> Cuando ingreses, verás tu tiempo y costo aquí.
+                                    </div>
+                                {% else %}
+                                    <div style="font-size: 0.95rem; line-height: 1.8;">
+                                        <p style="margin: 5px 0;"><strong>📍 Ubicación:</strong> {{ datos_cliente.zona }} - {{ datos_cliente.espacio }}</p>
+                                        <p style="margin: 5px 0;"><strong>🚗 Placas:</strong> {{ datos_cliente.placa }}</p>
+                                        <p style="margin: 5px 0;"><strong>🕒 Entrada:</strong> {{ datos_cliente.entrada|date:"H:i" }} hrs</p>
+                                        <p style="margin: 5px 0;"><strong>⏳ Tiempo:</strong> {{ datos_cliente.horas_transcurridas }} Hora(s)</p>
+                                    </div>
+                                    
+                                    <div style="background-color: #eee; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center;">
+                                        <span style="font-size: 0.8rem; color: #555; text-transform: uppercase;">Total al momento:</span><br>
+                                        <strong style="font-size: 2rem; color: #d93025;">${{ datos_cliente.total_actual }}</strong>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <a href="{% url 'perfil' %}" class="btn-secondary">Ver Mi Perfil Completo</a>
+                        
+                        {% else %}
+                            <h2>Bienvenido</h2>
+                            <p>Hola <strong>{{ user.first_name }}</strong>, bienvenido de nuevo.</p>
+                            <a href="{% url 'perfil' %}" class="btn-submit" style="text-decoration: none; display: block; text-align: center;">Ir a Mi Perfil</a>
+                        {% endif %}
+
+                    {% endif %}
+
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <section class="locations-section">
+        <h2 class="locations-title">Ubicaciones Disponibles</h2>
+        <div class="cards-container">
+            <div class="card">
+                <img src="{% static 'images/balbuena.jpg' %}" alt="Balbuena" class="card-image">
+                <div class="card-content">
+                    {% if balbuena_libre %} <span class="status available">● Disponible</span> {% else %} <span class="status busy">● Lleno</span> {% endif %}
+                    <h3>Balbuena</h3>
+                    <p>Acceso rápido y cubierto. Seguridad 24/7.</p>
+                    <a href="#" class="btn-location">Ver Mapa</a>
+                </div>
+            </div>
+            <div class="card">
+                <img src="{% static 'images/moctezuma.jpg' %}" alt="Moctezuma" class="card-image">
+                <div class="card-content">
+                    {% if moctezuma_libre %} <span class="status available">● Disponible</span> {% else %} <span class="status busy">● Lleno</span> {% endif %}
+                    <h3>Moctezuma</h3>
+                    <p>Cerca del metro y zona comercial.</p>
+                    <a href="#" class="btn-location">Ver Mapa</a>
+                </div>
+            </div>
+            <div class="card">
+                <img src="{% static 'images/aeropuerto.jpg' %}" alt="Aeropuerto" class="card-image">
+                <div class="card-content">
+                    {% if aeropuerto_libre %} <span class="status available">● Disponible</span> {% else %} <span class="status busy">● Lleno</span> {% endif %}
+                    <h3>Aeropuerto</h3>
+                    <p>Servicio de Valet Parking incluido.</p>
+                    <a href="#" class="btn-location">Ver Mapa</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</body>

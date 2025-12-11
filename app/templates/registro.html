@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Cuenta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #222; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background-color: rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 20px; width: 350px; text-align: center; margin-top: 20px; margin-bottom: 20px;}
+        h1 { color: #bfd730; text-transform: uppercase; margin-bottom: 20px; }
+        
+        
+        input, select { width: 90%; padding: 10px; margin: 5px 0; border-radius: 5px; border: none; box-sizing: border-box; }
+        
+        .btn { background-color: #bfd730; color: black; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
+        .btn:hover { background-color: #a8be25; }
+        a { color: #ccc; display: block; margin-top: 15px; text-decoration: none; }
+        
+        
+        ul { list-style: none; padding: 0; color: #ccc; font-size: 0.8rem; text-align: left; }
+        .helptext { display: none; } 
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Registrarse</h1>
+
+        {% if message %}
+            <div style="background-color: #d93025; color: white; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-weight: bold;">
+                {{ message }}
+            </div>
+        {% endif %}
+        <form method="POST">
+            {% csrf_token %}
+            
+            {{ form.as_p }}
+
+            <input type="text" name="name" placeholder="Nombre Completo" required>
+            <input type="text" name="phone" placeholder="Teléfono" required>
+            <input type="text" name="license_plate" placeholder="Placa del Vehículo" required>
+            
+            <select name="vehicle_type" required>
+                <option value="" disabled selected>Tipo de Vehículo</option>
+                <option value="Car">Coche</option>
+                <option value="Motorcycle">Motocicleta</option>
+                <option value="Truck">Camión</option>
+            </select>
+
+            <button type="submit" class="btn">Crear Cuenta</button>
+        </form>
+        <a href="{% url 'home' %}">Volver a Inicio</a>
+    </div>
+</body>
+</html>

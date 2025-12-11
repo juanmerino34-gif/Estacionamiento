@@ -1,0 +1,159 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Perfil e Historial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #222; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        
+      
+        .box { 
+            background-color: rgba(255, 255, 255, 0.1); 
+            padding: 40px; 
+            border-radius: 20px; 
+            width: 100%; 
+            max-width: 900px; 
+            text-align: center; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        
+        h1 { color: #bfd730; text-transform: uppercase; margin-bottom: 30px; }
+        h2 { color: white; border-bottom: 2px solid #bfd730; padding-bottom: 10px; margin-top: 40px; text-align: left; }
+
+        /* Estilos del formulario */
+        label { display: block; text-align: left; margin-top: 10px; color: #bfd730; font-weight: bold; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: none; box-sizing: border-box; font-size: 1rem; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; }
+        
+        .btn { background-color: #bfd730; color: black; border: none; padding: 12px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; font-size: 1rem; transition: 0.3s; }
+        .btn:hover { background-color: #a8be25; }
+        .btn-danger { background-color: #d93025; color: white; margin-top: 10px; width: auto; padding: 10px 20px; font-size: 0.9rem; }
+        
+        .alert { background: #fff; color: #333; padding: 10px; border-left: 5px solid #bfd730; margin-bottom: 15px; border-radius: 5px; }
+        a { color: #ccc; display: inline-block; margin-top: 15px; text-decoration: none; margin-left: 15px; margin-right: 15px; }
+        a:hover { color: white; }
+
+        .table-responsive { overflow-x: auto; margin-top: 20px; }
+        .history-table { width: 100%; border-collapse: collapse; color: #ddd; font-size: 0.95rem; }
+        .history-table th { background-color: rgba(191, 215, 48, 0.2); color: #bfd730; padding: 12px; text-align: left; border-radius: 5px 5px 0 0; }
+        .history-table td { padding: 12px; border-bottom: 1px solid #444; text-align: left; }
+        .history-table tr:hover { background-color: rgba(255,255,255,0.05); }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .badge-paid { background-color: #1b5e20; color: #a5d6a7; }
+        .badge-in-progress { background-color: #0d47a1; color: #bbdefb; }
+
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>👤 Mi Perfil</h1>
+        
+        {% if message %}
+            <div class="alert">{{ message }}</div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <p style="text-align: right; font-size: 0.8rem; color: #ccc; margin-bottom: 20px;">
+                <i class="fas fa-user-circle"></i> Usuario: {{ user.username }}
+            </p>
+            
+            <div class="form-grid">
+                <div>
+                    <label>Nombre Completo:</label>
+                    <input type="text" name="name" value="{{ client.name|default:user.first_name }}" placeholder="Tu nombre completo" required>
+                </div>
+                <div>
+                    <label>Email:</label>
+                    <input type="email" name="email" value="{{ user.email }}" required>
+                </div>
+                <div>
+                    <label>Teléfono:</label>
+                    <input type="text" name="phone" value="{{ client.phone|default:'' }}" placeholder="55-1234-5678">
+                </div>
+                <div>
+                    <label>Placa:</label>
+                    <input type="text" name="license_plate" value="{{ client.license_plate|default:'' }}" placeholder="ABC-123" style="background: rgba(255,255,255,0.1); color: #bfd730; font-weight: bold;">
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <label>Tipo de Vehículo:</label>
+                <select name="vehicle_type">
+                    <option value="" disabled {% if not client.vehicle_type %}selected{% endif %}>Seleccionar...</option>
+                    <option value="Car" {% if client.vehicle_type == 'Car' %}selected{% endif %}>Coche</option>
+                    <option value="Motorcycle" {% if client.vehicle_type == 'Motorcycle' %}selected{% endif %}>Motocicleta</option>
+                    <option value="Truck" {% if client.vehicle_type == 'Truck' %}selected{% endif %}>Camión</option>
+                </select>
+            </div>
+            
+            <button type="submit" name="update" class="btn">💾 Guardar Mis Datos</button>
+        </form>
+
+        <h2><i class="fas fa-history"></i> Historial de Visitas</h2>
+        
+        <div class="table-responsive">
+            {% if history %}
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Fecha de Entrada</th>
+                        <th>Salida</th>
+                        <th>Zona / Espacio</th>
+                        <th>Costo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in history %}
+                    <tr>
+                        <td>{{ record.entry_time|date:"d/m/y H:i" }}</td>
+                        <td>{{ record.exit_time|date:"d/m/y H:i"|default:"-" }}</td>
+                        <td>{{ record.space.zone }} - {{ record.space.identifier }}</td>
+                        <td>
+                            {% if record.amount_paid %}
+                                ${{ record.amount_paid }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.paid %}
+                                <span class="badge badge-paid">Pagado</span>
+                            {% else %}
+                                <span class="badge badge-in-progress">En Progreso</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p style="color: #ccc; margin-top: 20px;">Aún no tienes visitas registradas con la placa <strong>{{ client.license_plate }}</strong>.</p>
+            {% endif %}
+        </div>
+        <hr style="border-color: #444; margin-top: 40px;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div>
+                <a href="{% url 'home' %}">← Volver al Estacionamiento</a>
+                <a href="{% url 'logout' %}" style="color: #bfd730;">Cerrar Sesión</a>
+            </div>
+            
+            <form method="POST" onsubmit="return confirm('¿ESTÁS SEGURO? Esta acción eliminará tu cuenta y tus datos.');">
+                {% csrf_token %}
+                <button type="submit" name="delete" class="btn btn-danger">🗑️ Eliminar Cuenta</button>
+            </form>
+        </div>
+
+    </div>
+</body>
+</html>
